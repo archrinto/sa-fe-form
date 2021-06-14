@@ -1,9 +1,9 @@
 <template>
   <div>
-    <v-app-bar color="primary" dark>
-      <v-app-bar-title>{{ APP_NAME }}</v-app-bar-title>
+    <v-app-bar color="primary" dark fixed>
+      <v-app-bar-title @click="$router.push('/')">{{ APP_NAME }}</v-app-bar-title>
     </v-app-bar>
-    <router-view/>
+    <router-view class="mt-15"/>
   </div>
 </template>
 <script>

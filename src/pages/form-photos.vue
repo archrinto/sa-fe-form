@@ -7,7 +7,7 @@
             <v-stepper v-model="currentPhotoIndex" vertical>
               <template v-for="(key, index) in Object.keys(photos)">
                 <v-stepper-step
-                  :key="key"
+                  :key="key + 'stepper'"
                   :step="index + 1"
                   :complete="photos[key].file != null"
                 >
@@ -15,7 +15,7 @@
                   <small class="mt-2">{{ photos[key].guideText }}</small>
                 </v-stepper-step>
 
-                <v-stepper-content :key="key" :step="index + 1">
+                <v-stepper-content :key="key + 'content'" :step="index + 1">
                   <v-card 
                     class="mb-4" 
                     @click="openCameraDialog(key)"
@@ -54,9 +54,11 @@
               </v-stepper-step>
 
               <v-stepper-content :step="Object.keys(photos).length + 1">
-                Upload keseluruhan foto yang telah diambil.
+                <div class="mb-5">
+                  Upload keseluruhan foto yang telah diambil.
+                </div>
                 <div class="d-flex justify-end">
-                    <v-btn text v-if="index != 0" small @click="Object.keys(photos).length"
+                    <v-btn text small @click="Object.keys(photos).length"
                       :disabled="isUploadLoading"
                     >
                       kembali
@@ -80,6 +82,7 @@
 
     <v-dialog 
       v-model="isGuidanceDialog"
+      persistent
       max-width="600"
     >
       <v-card>
@@ -116,7 +119,7 @@
           <v-btn
             icon
             dark
-            @click="closeCamera"
+            @click="closeCameraDialog"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -204,7 +207,7 @@
 import PhotoGuidance from '../components/PhotoGuidance.vue'
 export default {
   components: { PhotoGuidance },
-  mounted () {
+  created () {
     document.title = 'Photos - ' + process.env.VUE_APP_NAME
 
     if (window.localStorage.getItem('agreementStatus') == null) {
@@ -283,6 +286,22 @@ export default {
     openCameraDialog(key) {
       this.currentPhoto = key
       this.isCameraDialog = true
+      
+      const constraints = (window.constraints = {
+        audio: false,
+        video: true
+      });
+
+      navigator.mediaDevices
+        .getUserMedia(constraints)
+        .then(() => {
+          this.getUserMediaDevice()
+        })
+        .catch(error => {
+          console.log(error)
+          alert("May the browser didn't support or there is some errors.")
+        })
+
       this.openCamera()
     },
     closeCameraDialog() {
@@ -312,9 +331,9 @@ export default {
         console.log(err.name + ": " + err.message);
       })
       this.listCamera = listDevice
-      console.log(listDevice)
+
       if (listDevice.length > 0) {
-        this.selectedCamera = listDevice[0]
+        this.selectedCamera = listDevice[0].value
       }
     },
     openCamera() {
@@ -331,10 +350,12 @@ export default {
       
     createCameraElement() {
       this.isLoading = true;
+
+      console.log(this.selectedCamera)
       
       let video = true
       if (this.selectedCamera) {
-        video = { deviceId: this.selectedCamera.value}
+        video = { deviceId: this.selectedCamera}
       }
 
       const constraints = (window.constraints = {
@@ -347,7 +368,6 @@ export default {
         .then(stream => {
           this.isLoading = false;
           this.$refs.camera.srcObject = stream;
-          this.getUserMediaDevice()
         })
         .catch(error => {
           console.log(error)
@@ -417,38 +437,72 @@ export default {
       this.currentPhotoIndex = index - 1
       this.currentPhoto = this.photos[keys[this.currentPhotoIndex - 1]]
     },
+    async uploadPhoto(item){
+      if (this.photos[item].file == null) {
+        console.log('image null')
+        return false
+      } else {
+        const formData = new FormData();
+        const blobBin = atob(this.photos[item].file.split(',')[1]);
+        const array = [];
 
-    uploadPhotos() {
-        this.isUploadLoading = true
-        
-        Object.keys(this.photos).forEach( async (item) => {
-          const formData = new FormData();
-          const blobBin = atob(this.photos[item].split(',')[1]);
-          const array = [];
+        for(var i = 0; i < blobBin.length; i++) {
+            array.push(blobBin.charCodeAt(i));
+        }
 
-          for(var i = 0; i < blobBin.length; i++) {
-              array.push(blobBin.charCodeAt(i));
+        const file = new Blob([new Uint8Array(array)], {type: 'image/jpeg'});
+
+        formData.append('image', file)
+        formData.append('face', item)
+
+        const config = {
+          headers: {
+            "content-type": "multipart/form-data"
           }
+        }
 
-          const file = new Blob([new Uint8Array(array)], {type: 'image/jpeg'});
-
-          formData.append('image', file)
-          formData.append('face', item)
-
-          const config = {
-            headers: {
-              "content-type": "multipart/form-data"
-            }
-          }
-
-          await this.$axios.post('/api/upload_image', formData, config)
-          .catch(err => {
-            console.log(err)
-          })
+        return await this.$axios.post('/api/upload-image', formData, config)
+        .then(() => {
+          return true
         })
+        .catch(err => {
+          console.log(err)
+          return false
+        })
+      }
+    },
+    async uploadPhotos() {
+        this.isUploadLoading = true
 
+        let uploadSuccess = true
+        
+        if (uploadSuccess) {
+          uploadSuccess = await this.uploadPhoto('face1')
+        }
+        if (uploadSuccess) {
+          this.photos['face1'].file = null
+          uploadSuccess = await this.uploadPhoto('face2')
+        }
+        if (uploadSuccess) {
+          this.photos['face2'].file = null
+          uploadSuccess = await this.uploadPhoto('face3')
+        }
+        if (uploadSuccess) {
+          this.photos['face3'].file = null
+          uploadSuccess = await this.uploadPhoto('face4')
+        }
+        if (uploadSuccess) {
+          this.photos['face4'].file = null
+          uploadSuccess = await this.uploadPhoto('face5')
+        }
+
+        if (uploadSuccess) {
+          this.photos['face5'].file = null
+
+          window.localStorage.removeItem('agreementStatus')
+          this.$router.push('/thanks-greeting')
+        }
         this.isUploadLoading = false
-        this.$router.push('/thanks-greeting')
     }
 
   }

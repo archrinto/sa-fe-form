@@ -27,6 +27,7 @@
           >Tolak</v-btn>
           <v-btn 
             class="ma-1 px-4"
+            :loading="isLoading"
             color="primary"
             @click="acceptAgreement"
           >Setuju</v-btn>
@@ -52,18 +53,33 @@ export default {
   },
   data () {
     return {
-      isAgreementDialog: true
+      isAgreementDialog: true,
+      clientId: null,
+      isLoading: false
     }
   },
   methods: {
-    acceptAgreement() {
+    async acceptAgreement() {
+      this.isLoading = true
       window.localStorage.setItem('agreementStatus', true)
+      await this.clientCheckin()
+      this.isLoading = false
       this.$router.push('/form-photos')
     },
     declineAgreement() {
       window.localStorage.setItem('agreementStatus', false)
       this.$router.push('/decline-greeting')
-    }
+    },
+    async clientCheckin() {
+      await this.$axios.get('/api/checkin')
+      .then(res => {
+        this.clientId = res.data.client_id
+        // console.log(res.data.client_id)
+        // this.clientId = '25ba507a-7953-4b0b-a02b-0eff0459df97'
+        this.$axios.defaults.headers.common['Client-Id'] = this.clientId
+        window.axios.defaults.headers.common['Client-Id'] = this.clientId
+      })
+    },
   }
 }
 </script>
