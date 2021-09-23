@@ -60,7 +60,7 @@
                   Upload keseluruhan foto yang telah diambil.
                 </div>
                 <div class="d-flex justify-end">
-                    <v-btn text small @click="Object.keys(photos).length"
+                    <v-btn text small @click="prevPhoto(Object.keys(photos).length + 1)"
                       :disabled="isUploadLoading"
                     >
                       kembali
