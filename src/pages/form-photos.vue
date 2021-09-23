@@ -12,14 +12,14 @@
                   :complete="photos[key].file != null"
                 >
                   {{ photos[key].name }}
-                  <small class="mt-2">{{ photos[key].guideText }}</small>
+                  <p class="mt-2 text-caption grey--text">{{ photos[key].guideText }}</p>
                 </v-stepper-step>
 
                 <v-stepper-content :key="key + 'content'" :step="index + 1">
                   <v-card 
                     class="mb-4" 
                     @click="openCameraDialog(key)"
-                    color="grey lighten-1"
+                    color="white lighten-1"
                     style="position: relative"
                   >
                     <v-img
@@ -27,8 +27,10 @@
                       :src="photos[key].file"
                     ></v-img>
 
-                    <div class="card-camera-icon text-center d-flex">
-                      <v-icon large class="white--text align-center">mdi-camera</v-icon>
+                    <div class="card-camera-icon text-center d-flex flex-column pa-5">
+                      <!-- <v-icon large class="white--text align-center">mdi-camera</v-icon> -->
+                      <v-img class="v-icon" contain height="50%" :src="photos[key].guideImage"></v-img>
+                      <span class="text-caption grey--text mt-2">Click to get picture</span>
                     </div>
 
                   </v-card>
@@ -161,8 +163,13 @@
           </v-row>
           <v-row no-gutters class="justify-center mt-2">
             <v-col cols="12" md="7">
-              <video :class="{mirror: isMirror}" v-show="isCameraOpen" ref="camera" autoplay width="100%"></video> 
-              <canvas v-show="!isCameraOpen" ref="canvas" width="100%"></canvas>
+              <div style="position: relative;">
+                <video :class="{mirror: isMirror}" v-show="isCameraOpen" ref="camera" autoplay width="100%"></video>
+                <canvas v-show="!isCameraOpen" ref="canvas" width="100%"></canvas>
+                <div style="position: absolute; height: 100%; widht: 100%" class="pa-2 d-flex align-center">
+                  <v-img class="v-icon" contain height="80%" :src="photos[currentPhoto].guideImageO"></v-img>
+                </div>
+              </div>
               <div class="text-center mt-2">
                 <v-btn
                   class="mx-2"
@@ -232,31 +239,36 @@ export default {
         face1: {
           name: 'Hadap Kanan',
           file: null,
-          guideImage: null,
+          guideImage: '/images/face-right.png',
+          guideImageO: '/images/face-right-o.png',
           guideText: 'Posisi wajah menghadap ke arah kanan, menunjukan pipi sebelah kiri, 90 derajat dari posisi kamera',
         },
         face2: {
           name: 'Serong Kanan',
           file: null,
-          guideImage: null,
+          guideImage: '/images/face-front-right.png',
+          guideImageO: '/images/face-front-right-o.png',
           guideText: 'Posisi wajah menghadap serong ke arah kanan, 45 derajat dari posisi kamera',
         },
         face3: {
           name: 'Depan',
           file: null,
-          guideImage: null,
+          guideImage: '/images/face-front.png',
+          guideImageO: '/images/face-front-o.png',
           guideText: 'Posisi wajah menghadap lurus ke arah kamera',
         },
         face4: {
           name: 'Serong Kiri',
           file: null,
-          guideImage: null,
+          guideImage: '/images/face-front-left.png',
+          guideImageO: '/images/face-front-left-o.png',
           guideText: 'Posisi wajah menghadap serong ke arah kiri, 45 derajat dari posisi kamera',
         },
         face5: {
           name: 'Hadap Kiri',
           file: null,
-          guideImage: null,
+          guideImage: '/images/face-left.png',
+          guideImageO: '/images/face-left-o.png',
           guideText: 'Posisi wajah menghadap ke arah kiri, menunjukan pipi sebelah kanan, 90 derajat dari posisi kamera',
         }
       }
