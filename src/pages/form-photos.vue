@@ -166,7 +166,7 @@
               <div style="position: relative;">
                 <video :class="{mirror: isMirror}" v-show="isCameraOpen" ref="camera" autoplay width="100%"></video>
                 <canvas v-show="!isCameraOpen" ref="canvas" width="100%"></canvas>
-                <div style="position: absolute; height: 100%; widht: 100%" class="pa-2 d-flex align-center">
+                <div style="position: absolute; height: 100%; widht: 100%; top: 0; left: 0" class="pa-2 d-flex align-center">
                   <v-img class="v-icon" contain height="80%" :src="photos[currentPhoto].guideImageO"></v-img>
                 </div>
               </div>
